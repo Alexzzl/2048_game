@@ -1,13 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from '@emotion/styled';
-import { GameState, Grid, Direction } from '../types';
 
+// 类型定义
+type Grid = number[][];
+type Direction = 'up' | 'down' | 'left' | 'right';
+
+interface GameState {
+  grid: Grid;
+  score: number;
+  gameOver: boolean;
+  won: boolean;
+}
+
+interface MessageProps {
+  type: 'over' | 'win';
+  children: React.ReactNode;
+}
+
+// 样式组件
 const GameContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 `;
 
 const Board = styled.div`
@@ -18,13 +34,14 @@ const Board = styled.div`
   grid-template-columns: repeat(4, 1fr);
   gap: 15px;
   margin: 20px 0;
+  position: relative;
 `;
 
 const Cell = styled.div<{ value: number }>`
   width: 80px;
   height: 80px;
   background-color: ${({ value }) => getCellBackground(value)};
-  color: ${({ value }) => value <= 4 ? '#776e65' : '#f9f6f2'};
+  color: ${({ value }) => (value <= 4 ? '#776e65' : '#f9f6f2')};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -32,12 +49,39 @@ const Cell = styled.div<{ value: number }>`
   font-weight: bold;
   border-radius: 3px;
   transition: all 0.15s ease;
+  position: relative;
+  z-index: 10;
+
+  @media (max-width: 520px) {
+    width: 60px;
+    height: 60px;
+    font-size: ${({ value }) => (value < 100 ? '28px' : value < 1000 ? '24px' : '18px')};
+  }
 `;
 
-const Score = styled.div`
+const ScoreContainer = styled.div`
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+`;
+
+const ScoreBox = styled.div`
+  background-color: #bbada0;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 3px;
+  text-align: center;
+  min-width: 100px;
+`;
+
+const ScoreTitle = styled.div`
+  font-size: 14px;
+  text-transform: uppercase;
+`;
+
+const ScoreValue = styled.div`
   font-size: 24px;
   font-weight: bold;
-  margin: 20px 0;
 `;
 
 const Button = styled.button`
@@ -49,14 +93,44 @@ const Button = styled.button`
   font-size: 18px;
   cursor: pointer;
   margin: 10px;
+  transition: all 0.2s;
   
   &:hover {
     background-color: #7f6a56;
+    transform: scale(1.05);
   }
 `;
 
+const Message = styled.div<MessageProps>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(238, 228, 218, 0.73);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  font-weight: bold;
+  color: ${({ type }) => (type === 'over' ? '#776e65' : '#f67c5f')};
+  border-radius: 6px;
+
+  @media (max-width: 520px) {
+    font-size: 40px;
+  }
+`;
+
+const MessageButton = styled(Button)`
+  margin-top: 20px;
+  font-size: 24px;
+`;
+
+// 辅助函数
 const getCellBackground = (value: number): string => {
-  const colors: { [key: number]: string } = {
+  const colors: Record<number, string> = {
     2: '#eee4da',
     4: '#ede0c8',
     8: '#f2b179',
@@ -67,7 +141,9 @@ const getCellBackground = (value: number): string => {
     256: '#edcc61',
     512: '#edc850',
     1024: '#edc53f',
-    2048: '#edc22e'
+    2048: '#edc22e',
+    4096: '#3c3a32',
+    8192: '#3c3a32'
   };
   return colors[value] || '#cdc1b4';
 };
@@ -93,62 +169,96 @@ const addRandomTile = (grid: Grid): Grid => {
 };
 
 const Game2048: React.FC = () => {
-  const [gameState, setGameState] = useState<GameState>({
+  const [gameState, setGameState] = useState<GameState>(() => ({
     grid: addRandomTile(addRandomTile(createEmptyGrid())),
     score: 0,
     gameOver: false,
     won: false
-  });
+  }));
   const [touchStart, setTouchStart] = useState<[number, number] | null>(null);
+  const [keepPlaying, setKeepPlaying] = useState(false);
 
-  const rotateGrid = (grid: Grid): Grid => {
+  // 顺时针旋转90度
+  const rotateGrid = useCallback((grid: Grid): Grid => {
     const N = grid.length;
     const rotated = Array(N).fill(null).map(() => Array(N).fill(0));
     for (let i = 0; i < N; i++) {
       for (let j = 0; j < N; j++) {
-        rotated[j][N - 1 - i] = grid[i][j];
+        rotated[i][j] = grid[N - 1 - j][i];
       }
     }
     return rotated;
-  };
+  }, []);
 
-  const compress = (grid: Grid): [Grid, boolean, number] => {
+  // 压缩和合并行
+  const compress = useCallback((grid: Grid): [Grid, boolean, number] => {
     const N = grid.length;
-    const newGrid = Array(N).fill(null).map(() => Array(N).fill(0));
+    const newGrid = createEmptyGrid();
     let score = 0;
     let moved = false;
 
     for (let i = 0; i < N; i++) {
-      let position = 0;
+      let col = 0;
+      let prevValue: number | null = null;
+      
       for (let j = 0; j < N; j++) {
         if (grid[i][j] !== 0) {
-          if (position > 0 && newGrid[i][position - 1] === grid[i][j]) {
-            newGrid[i][position - 1] *= 2;
-            score += newGrid[i][position - 1];
+          if (prevValue === grid[i][j]) {
+            // 合并相同数字
+            newGrid[i][col - 1] = prevValue * 2;
+            score += prevValue * 2;
             moved = true;
+            prevValue = null;
           } else {
-            if (j !== position) moved = true;
-            newGrid[i][position] = grid[i][j];
-            position++;
+            // 移动数字
+            if (j !== col) moved = true;
+            newGrid[i][col] = grid[i][j];
+            prevValue = grid[i][j];
+            col++;
           }
         }
       }
     }
-    return [newGrid, moved, score];
-  };
 
-  const moveGrid = (direction: Direction): void => {
+    return [newGrid, moved, score];
+  }, []);
+
+  // 检查游戏是否结束
+  const checkGameOver = useCallback((grid: Grid): boolean => {
+    // 检查是否有空格
+    if (grid.some(row => row.some(cell => cell === 0))) {
+      return false;
+    }
+
+    // 检查是否有相邻的相同数字
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        const current = grid[i][j];
+        // 检查右边
+        if (j < 3 && current === grid[i][j + 1]) return false;
+        // 检查下边
+        if (i < 3 && current === grid[i + 1][j]) return false;
+      }
+    }
+
+    return true;
+  }, []);
+
+  // 移动网格
+  const moveGrid = useCallback((direction: Direction): void => {
+    if (gameState.gameOver && !keepPlaying) return;
+
     let currentGrid = gameState.grid.map(row => [...row]);
     let moved = false;
     let score = 0;
 
-    // 根据方向旋转网格
+    // 根据方向处理网格
     switch (direction) {
       case 'left':
         [currentGrid, moved, score] = compress(currentGrid);
         break;
       case 'right':
-        currentGrid = currentGrid.map(row => row.reverse());
+        currentGrid = currentGrid.map(row => [...row].reverse());
         [currentGrid, moved, score] = compress(currentGrid);
         currentGrid = currentGrid.map(row => row.reverse());
         break;
@@ -174,34 +284,15 @@ const Game2048: React.FC = () => {
         ...prev,
         grid: newGrid,
         score: newScore,
-        won: hasWon,
+        won: hasWon && !prev.won, // 只在第一次达到2048时设置won为true
         gameOver: isGameOver
       }));
     }
-  };
+  }, [gameState, keepPlaying, compress, rotateGrid, checkGameOver]);
 
-  const checkGameOver = (grid: Grid): boolean => {
-    // 检查是否有空格
-    if (grid.some(row => row.some(cell => cell === 0))) {
-      return false;
-    }
-
-    // 检查是否有相邻的相同数字
-    for (let i = 0; i < 4; i++) {
-      for (let j = 0; j < 4; j++) {
-        const current = grid[i][j];
-        // 检查右边
-        if (j < 3 && current === grid[i][j + 1]) return false;
-        // 检查下边
-        if (i < 3 && current === grid[i + 1][j]) return false;
-      }
-    }
-
-    return true;
-  };
-
+  // 键盘事件处理
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (gameState.gameOver) return;
+    if (gameState.gameOver && !keepPlaying) return;
 
     switch (event.key) {
       case 'ArrowUp':
@@ -221,15 +312,16 @@ const Game2048: React.FC = () => {
         moveGrid('right');
         break;
     }
-  }, [gameState.gameOver]);
+  }, [gameState.gameOver, keepPlaying, moveGrid]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // 触摸事件处理
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
     setTouchStart([touch.clientX, touch.clientY]);
-  };
+  }, []);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart) return;
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStart || (gameState.gameOver && !keepPlaying)) return;
     
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStart[0];
@@ -245,12 +337,13 @@ const Game2048: React.FC = () => {
     }
 
     setTouchStart(null);
-  };
+  }, [touchStart, gameState.gameOver, keepPlaying, moveGrid]);
 
-  const handleTouchCancel = () => {
+  const handleTouchCancel = useCallback(() => {
     setTouchStart(null);
-  };
+  }, []);
 
+  // 添加键盘事件监听
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -258,43 +351,68 @@ const Game2048: React.FC = () => {
     };
   }, [handleKeyDown]);
 
-  const resetGame = () => {
+  // 重置游戏
+  const resetGame = useCallback(() => {
     setGameState({
       grid: addRandomTile(addRandomTile(createEmptyGrid())),
       score: 0,
       gameOver: false,
       won: false
     });
-  };
+    setKeepPlaying(false);
+  }, []);
+
+  // 继续游戏（达到2048后）
+  const continueGame = useCallback(() => {
+    setKeepPlaying(true);
+  }, []);
 
   return (
     <GameContainer>
-      <h1 style={{ color: '#776e65', marginBottom: '20px' }}>2048</h1>
-      <Score>
-        <span>得分</span>
-        {gameState.score}
-      </Score>
+      <h1 style={{ color: '#776e65', marginBottom: '10px', fontSize: '60px' }}>2048</h1>
+      <ScoreContainer>
+        <ScoreBox>
+          <ScoreTitle>分数</ScoreTitle>
+          <ScoreValue>{gameState.score}</ScoreValue>
+        </ScoreBox>
+        <ScoreBox>
+          <ScoreTitle>最高分</ScoreTitle>
+          <ScoreValue>{localStorage.getItem('2048-high-score') || 0}</ScoreValue>
+        </ScoreBox>
+      </ScoreContainer>
       <Board
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchCancel}
-        className="board"
       >
         {gameState.grid.flat().map((value, index) => (
           <Cell 
             key={index} 
             value={value}
-            className={value ? 'cell-new' : ''}
+            className={value ? 'cell' : ''}
           >
             {value !== 0 ? value : ''}
           </Cell>
         ))}
+        {gameState.gameOver && (
+          <Message type="over">
+            游戏结束！
+            <MessageButton onClick={resetGame}>再试一次</MessageButton>
+          </Message>
+        )}
+        {gameState.won && !keepPlaying && (
+          <Message type="win">
+            你赢了！
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <MessageButton onClick={continueGame}>继续</MessageButton>
+              <MessageButton onClick={resetGame}>新游戏</MessageButton>
+            </div>
+          </Message>
+        )}
       </Board>
       <Button onClick={resetGame}>新游戏</Button>
-      {gameState.gameOver && <Message type="over">游戏结束！</Message>}
-      {gameState.won && <Message type="win">恭喜你赢了！</Message>}
     </GameContainer>
   );
 };
 
-export default Game2048; 
+export default Game2048;
