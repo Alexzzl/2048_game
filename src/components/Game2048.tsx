@@ -21,6 +21,7 @@ const GameContainer = styled.div`
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
+  box-sizing: border-box;
 
   @media (min-width: 521px) {
     padding: 40px 20px;
@@ -30,7 +31,12 @@ const GameContainer = styled.div`
     padding: 10px;
     max-width: 100%;
   }
+
+  @media (max-width: 400px) {
+    padding: 8px;
+  }
 `;
+
 
 const Header = styled.div`
   display: flex;
@@ -38,6 +44,7 @@ const Header = styled.div`
   align-items: center;
   width: 100%;
   margin-bottom: 20px;
+  box-sizing: border-box;
 
   @media (max-width: 520px) {
     margin-bottom: 10px;
@@ -48,6 +55,7 @@ const TitleAndScores = styled.div`
   display: flex;
   align-items: center;
   gap: 20px;
+  box-sizing: border-box;
 
   @media (max-width: 520px) {
     gap: 10px;
@@ -61,6 +69,10 @@ const Title = styled.h1`
 
   @media (max-width: 520px) {
     font-size: 36px;
+  }
+
+  @media (max-width: 400px) {
+    font-size: 32px;
   }
 `;
 
@@ -86,8 +98,14 @@ const Board = styled.div`
     padding: 10px;
     gap: 8px;
     margin: 10px 0;
-    width: 95vw; // 设置为视口宽度的95%
-    max-width: none; // 移除最大宽度限制
+  }
+
+  @media (max-width: 400px) {
+    max-width: 100%;
+    padding: 8px;
+    gap: 6px;
+    margin: 10px 0;
+    border-radius: 4px;
   }
 `;
 
@@ -115,10 +133,19 @@ const Cell = styled.div<{ value: number }>`
   @media (max-width: 520px) {
     border-radius: 4px;
     font-size: ${({ value }) => {
-      if (value < 100) return '28px';
-      if (value < 1000) return '24px';
-      return '18px';
-    }};
+    if (value < 100) return '28px';
+    if (value < 1000) return '24px';
+    return '18px';
+  }};
+  }
+
+  @media (max-width: 400px) {
+    font-size: ${({ value }) => {
+    if (value < 100) return '50px';
+    if (value < 1000) return '45px';
+    return '40px';
+  }};
+    border-radius: 3px;
   }
 `;
 
@@ -281,7 +308,7 @@ const Game2048: React.FC = () => {
     for (let i = 0; i < N; i++) {
       let col = 0;
       let prevValue: number | null = null;
-      
+
       for (let j = 0; j < N; j++) {
         if (grid[i][j] !== 0) {
           if (prevValue === grid[i][j]) {
@@ -403,7 +430,7 @@ const Game2048: React.FC = () => {
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (!touchStart || (gameState.gameOver && !keepPlaying)) return;
-    
+
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStart[0];
     const deltaY = touch.clientY - touchStart[1];
@@ -473,8 +500,8 @@ const Game2048: React.FC = () => {
         className="board"
       >
         {gameState.grid.flat().map((value, index) => (
-          <Cell 
-            key={index} 
+          <Cell
+            key={index}
             value={value}
             className={value ? 'cell-new' : ''}
           >
