@@ -16,9 +16,7 @@ const GameContainer = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-  max-width: 500px;
-  margin: 0 auto;
+  font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 `;
 
 const Board = styled.div`
@@ -72,13 +70,13 @@ const ScoreBox = styled.div`
 const ScoreTitle = styled.div`
   color: #eee4da;
   text-transform: uppercase;
-  font-size: 13px;
+  font-size: 14px;
   margin-bottom: 5px;
 `;
 
 const ScoreValue = styled.div`
   color: white;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: bold;
 `;
 
