@@ -17,6 +17,46 @@ const GameContainer = styled.div`
   align-items: center;
   padding: 20px;
   font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+
+  @media (max-width: 520px) {
+    padding: 10px;
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+
+  @media (max-width: 520px) {
+    margin-bottom: 10px;
+  }
+`;
+
+const TitleAndScores = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  @media (max-width: 520px) {
+    gap: 10px;
+  }
+`;
+
+const Title = styled.h1`
+  color: #776e65;
+  margin: 0;
+  font-size: 48px;
+
+  @media (max-width: 520px) {
+    font-size: 36px;
+  }
 `;
 
 const Board = styled.div`
@@ -28,6 +68,14 @@ const Board = styled.div`
   gap: 15px;
   margin: 20px 0;
   position: relative;
+  width: 100%;
+  max-width: 500px;
+
+  @media (max-width: 520px) {
+    padding: 10px;
+    gap: 8px;
+    margin: 10px 0;
+  }
 `;
 
 const Cell = styled.div<{ value: number }>`
@@ -46,37 +94,37 @@ const Cell = styled.div<{ value: number }>`
   z-index: 10;
 
   @media (max-width: 520px) {
-    width: 60px;
-    height: 60px;
+    width: calc((100vw - 40px - 30px) / 4);
+    height: calc((100vw - 40px - 30px) / 4);
+    max-width: 80px;
+    max-height: 80px;
     font-size: ${({ value }) => (value < 100 ? '28px' : value < 1000 ? '24px' : '18px')};
   }
 `;
 
 const ScoreContainer = styled.div`
   display: flex;
-  gap: 20px;
-  margin: 20px 0;
+  gap: 10px;
 `;
 
 const ScoreBox = styled.div`
   background: #bbada0;
-  padding: 10px 25px;
-  border-radius: 6px;
+  padding: 5px 15px;
+  border-radius: 3px;
   text-align: center;
-  min-width: 100px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 80px;
 `;
 
 const ScoreTitle = styled.div`
   color: #eee4da;
   text-transform: uppercase;
-  font-size: 14px;
-  margin-bottom: 5px;
+  font-size: 12px;
+  margin-bottom: 2px;
 `;
 
 const ScoreValue = styled.div`
   color: white;
-  font-size: 24px;
+  font-size: 18px;
   font-weight: bold;
 `;
 
@@ -85,15 +133,19 @@ const Button = styled.button`
   color: white;
   border: none;
   border-radius: 3px;
-  padding: 10px 20px;
-  font-size: 18px;
+  padding: 8px 15px;
+  font-size: 16px;
   cursor: pointer;
-  margin: 10px;
   transition: all 0.2s;
   
   &:hover {
     background-color: #7f6a56;
     transform: scale(1.05);
+  }
+
+  @media (max-width: 520px) {
+    padding: 6px 12px;
+    font-size: 14px;
   }
 `;
 
@@ -376,17 +428,22 @@ const Game2048: React.FC = () => {
 
   return (
     <GameContainer>
-      <h1 style={{ color: '#776e65', marginBottom: '20px' }}>2048</h1>
-      <ScoreContainer>
-        <ScoreBox>
-          <ScoreTitle>当前分数</ScoreTitle>
-          <ScoreValue>{gameState.score}</ScoreValue>
-        </ScoreBox>
-        <ScoreBox>
-          <ScoreTitle>最高分</ScoreTitle>
-          <ScoreValue>{highScore}</ScoreValue>
-        </ScoreBox>
-      </ScoreContainer>
+      <Header>
+        <TitleAndScores>
+          <Title>2048</Title>
+          <ScoreContainer>
+            <ScoreBox>
+              <ScoreTitle>当前分数</ScoreTitle>
+              <ScoreValue>{gameState.score}</ScoreValue>
+            </ScoreBox>
+            <ScoreBox>
+              <ScoreTitle>最高分</ScoreTitle>
+              <ScoreValue>{highScore}</ScoreValue>
+            </ScoreBox>
+          </ScoreContainer>
+        </TitleAndScores>
+        <Button onClick={resetGame}>新游戏</Button>
+      </Header>
       <Board
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -418,7 +475,6 @@ const Game2048: React.FC = () => {
           </Message>
         )}
       </Board>
-      <Button onClick={resetGame}>新游戏</Button>
     </GameContainer>
   );
 };
