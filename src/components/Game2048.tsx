@@ -22,6 +22,10 @@ const GameContainer = styled.div`
   max-width: 600px;
   margin: 0 auto;
 
+  @media (min-width: 521px) {
+    padding: 40px 20px;
+  }
+
   @media (max-width: 520px) {
     padding: 10px;
   }
@@ -70,6 +74,12 @@ const Board = styled.div`
   position: relative;
   width: 100%;
   max-width: 500px;
+  aspect-ratio: 1;
+
+  @media (min-width: 521px) {
+    padding: 20px;
+    gap: 20px;
+  }
 
   @media (max-width: 520px) {
     padding: 10px;
@@ -79,26 +89,33 @@ const Board = styled.div`
 `;
 
 const Cell = styled.div<{ value: number }>`
-  width: 80px;
-  height: 80px;
+  aspect-ratio: 1;
+  width: 100%;
   background-color: ${({ value }) => getCellBackground(value)};
   color: ${({ value }) => (value <= 4 ? '#776e65' : '#f9f6f2')};
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: ${({ value }) => (value < 100 ? '36px' : value < 1000 ? '32px' : '24px')};
   font-weight: bold;
-  border-radius: 3px;
+  border-radius: 8px;
   transition: all 0.15s ease;
   position: relative;
   z-index: 10;
+  box-shadow: ${({ value }) => value ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none'};
+
+  font-size: ${({ value }) => {
+    if (value < 100) return 'min(10vw, 48px)';
+    if (value < 1000) return 'min(8vw, 40px)';
+    return 'min(6vw, 32px)';
+  }};
 
   @media (max-width: 520px) {
-    width: calc((100vw - 40px - 30px) / 4);
-    height: calc((100vw - 40px - 30px) / 4);
-    max-width: 80px;
-    max-height: 80px;
-    font-size: ${({ value }) => (value < 100 ? '28px' : value < 1000 ? '24px' : '18px')};
+    border-radius: 4px;
+    font-size: ${({ value }) => {
+      if (value < 100) return '28px';
+      if (value < 1000) return '24px';
+      return '18px';
+    }};
   }
 `;
 
@@ -155,19 +172,21 @@ const Message = styled.div<MessageProps>`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(238, 228, 218, 0.73);
+  background-color: rgba(238, 228, 218, 0.85);
   z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 60px;
+  font-size: min(12vw, 60px);
   font-weight: bold;
   color: ${({ type }) => (type === 'over' ? '#776e65' : '#f67c5f')};
   border-radius: 6px;
+  backdrop-filter: blur(2px);
 
   @media (max-width: 520px) {
     font-size: 40px;
+    background-color: rgba(238, 228, 218, 0.73);
   }
 `;
 
