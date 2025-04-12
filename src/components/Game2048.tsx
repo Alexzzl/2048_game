@@ -28,6 +28,7 @@ const GameContainer = styled.div`
 
   @media (max-width: 520px) {
     padding: 10px;
+    max-width: 100%;
   }
 `;
 
@@ -85,6 +86,8 @@ const Board = styled.div`
     padding: 10px;
     gap: 8px;
     margin: 10px 0;
+    width: 95vw; // 设置为视口宽度的95%
+    max-width: none; // 移除最大宽度限制
   }
 `;
 
