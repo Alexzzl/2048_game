@@ -1,20 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from '@emotion/styled';
+import { GameState } from '../types';
 
 // 类型定义
 type Grid = number[][];
 type Direction = 'up' | 'down' | 'left' | 'right';
 
-interface GameState {
-  grid: Grid;
-  score: number;
-  gameOver: boolean;
-  won: boolean;
-}
-
 interface MessageProps {
-  type: 'over' | 'win';
-  children: React.ReactNode;
+  type: 'win' | 'over';
 }
 
 // 样式组件
@@ -23,7 +16,9 @@ const GameContainer = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  max-width: 500px;
+  margin: 0 auto;
 `;
 
 const Board = styled.div`
@@ -62,25 +57,28 @@ const Cell = styled.div<{ value: number }>`
 const ScoreContainer = styled.div`
   display: flex;
   gap: 20px;
-  margin-bottom: 20px;
+  margin: 20px 0;
 `;
 
 const ScoreBox = styled.div`
-  background-color: #bbada0;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 3px;
+  background: #bbada0;
+  padding: 10px 25px;
+  border-radius: 6px;
   text-align: center;
   min-width: 100px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const ScoreTitle = styled.div`
-  font-size: 14px;
+  color: #eee4da;
   text-transform: uppercase;
+  font-size: 13px;
+  margin-bottom: 5px;
 `;
 
 const ScoreValue = styled.div`
-  font-size: 24px;
+  color: white;
+  font-size: 20px;
   font-weight: bold;
 `;
 
@@ -169,14 +167,25 @@ const addRandomTile = (grid: Grid): Grid => {
 };
 
 const Game2048: React.FC = () => {
-  const [gameState, setGameState] = useState<GameState>(() => ({
+  const [gameState, setGameState] = useState<GameState>({
     grid: addRandomTile(addRandomTile(createEmptyGrid())),
     score: 0,
     gameOver: false,
     won: false
-  }));
+  });
+  const [highScore, setHighScore] = useState<number>(
+    parseInt(localStorage.getItem('2048-high-score') || '0')
+  );
   const [touchStart, setTouchStart] = useState<[number, number] | null>(null);
   const [keepPlaying, setKeepPlaying] = useState(false);
+
+  // 更新最高分
+  useEffect(() => {
+    if (gameState.score > highScore) {
+      setHighScore(gameState.score);
+      localStorage.setItem('2048-high-score', gameState.score.toString());
+    }
+  }, [gameState.score, highScore]);
 
   // 顺时针旋转90度
   const rotateGrid = useCallback((grid: Grid): Grid => {
@@ -369,27 +378,28 @@ const Game2048: React.FC = () => {
 
   return (
     <GameContainer>
-      <h1 style={{ color: '#776e65', marginBottom: '10px', fontSize: '60px' }}>2048</h1>
+      <h1 style={{ color: '#776e65', marginBottom: '20px' }}>2048</h1>
       <ScoreContainer>
         <ScoreBox>
-          <ScoreTitle>分数</ScoreTitle>
+          <ScoreTitle>当前分数</ScoreTitle>
           <ScoreValue>{gameState.score}</ScoreValue>
         </ScoreBox>
         <ScoreBox>
           <ScoreTitle>最高分</ScoreTitle>
-          <ScoreValue>{localStorage.getItem('2048-high-score') || 0}</ScoreValue>
+          <ScoreValue>{highScore}</ScoreValue>
         </ScoreBox>
       </ScoreContainer>
       <Board
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchCancel}
+        className="board"
       >
         {gameState.grid.flat().map((value, index) => (
           <Cell 
             key={index} 
             value={value}
-            className={value ? 'cell' : ''}
+            className={value ? 'cell-new' : ''}
           >
             {value !== 0 ? value : ''}
           </Cell>
