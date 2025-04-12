@@ -1,0 +1,89 @@
+:root {
+  font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #faf8ef;
+  overflow: hidden;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slide {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cell-new {
+  animation: pop 0.2s ease-in-out;
+}
+
+.cell-merge {
+  animation: pop 0.2s ease-in-out;
+}
+
+.score-change {
+  animation: slide 0.3s ease-out;
+}
+
+@media (max-width: 768px) {
+  .board {
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+  }
+}
+
+@media (max-width: 480px) {
+  .board {
+    transform: scale(0.6);
+  }
+  
+  h1 {
+    font-size: 24px !important;
+  }
+  
+  .score {
+    font-size: 20px !important;
+  }
+}
+
+/* 触摸设备支持 */
+@media (hover: none) {
+  .board {
+    touch-action: none;
+  }
+  
+  button:active {
+    transform: scale(0.95);
+  }
+} 
