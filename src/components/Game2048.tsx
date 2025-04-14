@@ -77,6 +77,7 @@ const Header = styled.div`
   width: 100%;
   max-width: 600px;
   margin-bottom: 20px;
+  margin-top: 30px;
   box-sizing: border-box;
 
   @media (max-width: 520px) {
@@ -137,7 +138,8 @@ const Board = styled.div<{ theme: Theme }>`
     max-width: 100%;
     padding: 8px;
     gap: 6px;
-    margin: 10px 0;
+    margin-top: 100px;
+    margin-bottom: 1000px;
     border-radius: 4px;
   }
 `;
@@ -536,11 +538,12 @@ const Game2048: React.FC = () => {
             </ScoreBox>
           </ScoreContainer>
         </TitleAndScores>
-        <Button onClick={resetGame}>新游戏</Button>
+        <Button onClick={resetGame}>🔄</Button>
         <ThemeButton onClick={toggleTheme}>
           {theme === 'light' ? '🌙' : '☀️'}
         </ThemeButton>
       </Header>
+      
       <Board
         theme={theme}
         className="board"
