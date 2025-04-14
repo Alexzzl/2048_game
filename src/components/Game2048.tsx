@@ -5,13 +5,43 @@ import { GameState } from '../types';
 // 类型定义
 type Grid = number[][];
 type Direction = 'up' | 'down' | 'left' | 'right';
+// 在文件顶部添加主题类型定义
+type Theme = 'light' | 'dark';
 
 interface MessageProps {
   type: 'win' | 'over';
 }
 
+// 添加主题颜色配置
+const themes = {
+  light: {
+    background: '#faf8ef',
+    text: '#776e65',
+    board: '#bbada0',
+    tile: '#cdc1b4',
+    brightText: '#f9f6f2',
+    button: '#8f7a66',
+    buttonHover: '#7f6a56',
+    scoreBox: '#bbada0',
+    scoreText: '#eee4da',
+    overlay: 'rgba(238, 228, 218, 0.85)',
+  },
+  dark: {
+    background: '#1c1c1c',
+    text: '#d8d4cf',
+    board: '#2c2c2c',
+    tile: '#3c3c3c',
+    brightText: '#f9f6f2',
+    button: '#4a4a4a',
+    buttonHover: '#5a5a5a',
+    scoreBox: '#2c2c2c',
+    scoreText: '#d8d4cf',
+    overlay: 'rgba(28, 28, 28, 0.85)',
+  }
+};
+
 // 样式组件
-const GameContainer = styled.div`
+const GameContainer = styled.div<{ theme: Theme }>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -35,6 +65,9 @@ const GameContainer = styled.div`
   @media (max-width: 400px) {
     padding: 8px;
   }
+
+  background-color: ${({ theme }: { theme: Theme }) => themes[theme as keyof typeof themes].background};
+  transition: background-color 0.3s ease;
 `;
 
 
@@ -62,8 +95,8 @@ const TitleAndScores = styled.div`
   }
 `;
 
-const Title = styled.h1`
-  color: #776e65;
+const Title = styled.h1<{ theme: Theme }>`
+  color: ${({ theme }) => themes[theme as keyof typeof themes].text};
   margin: 0;
   font-size: 48px;
 
@@ -76,8 +109,8 @@ const Title = styled.h1`
   }
 `;
 
-const Board = styled.div`
-  background-color: #bbada0;
+const Board = styled.div<{ theme: Theme }>`
+  background-color: ${({ theme }) => themes[theme as keyof typeof themes].board};
   padding: 15px;
   border-radius: 6px;
   display: grid;
@@ -109,12 +142,11 @@ const Board = styled.div`
   }
 `;
 
-const Cell = styled.div<{ value: number }>`
+const Cell = styled.div<{ value: number; theme: Theme }>`
   aspect-ratio: 1;
   width: 100%;
-  background-color: ${({ value }) => getCellBackground(value)};
-  color: ${({ value }) => (value <= 4 ? '#776e65' : '#f9f6f2')};
-  display: flex;
+  background-color: ${({ value, theme }) => value ? getCellBackground(value, theme) : themes[theme as keyof typeof themes].tile};
+  color: ${({ value, theme }) => (value <= 4 ? themes[theme as keyof typeof themes].text : themes[theme as keyof typeof themes].brightText)}; display: flex;
   justify-content: center;
   align-items: center;
   font-weight: bold;
@@ -154,16 +186,16 @@ const ScoreContainer = styled.div`
   gap: 10px;
 `;
 
-const ScoreBox = styled.div`
-  background: #bbada0;
+const ScoreBox = styled.div<{ theme: Theme }>`
+  background: ${({ theme }) => themes[theme as keyof typeof themes].scoreBox};
   padding: 5px 15px;
   border-radius: 3px;
   text-align: center;
   min-width: 80px;
 `;
 
-const ScoreTitle = styled.div`
-  color: #eee4da;
+const ScoreTitle = styled.div<{ theme: Theme }>`
+  color: ${({ theme }) => themes[theme as keyof typeof themes].scoreText};
   text-transform: uppercase;
   font-size: 12px;
   margin-bottom: 2px;
@@ -196,6 +228,11 @@ const Button = styled.button`
   }
 `;
 
+// 添加主题切换按钮样式
+const ThemeButton = styled(Button)`
+  margin-left: 10px;
+`;
+
 const Message = styled.div<MessageProps>`
   position: absolute;
   top: 0;
@@ -226,23 +263,23 @@ const MessageButton = styled(Button)`
 `;
 
 // 辅助函数
-const getCellBackground = (value: number): string => {
-  const colors: Record<number, string> = {
-    2: '#eee4da',
-    4: '#ede0c8',
-    8: '#f2b179',
-    16: '#f59563',
-    32: '#f67c5f',
-    64: '#f65e3b',
-    128: '#edcf72',
-    256: '#edcc61',
-    512: '#edc850',
-    1024: '#edc53f',
-    2048: '#edc22e',
-    4096: '#3c3a32',
-    8192: '#3c3a32'
+const getCellBackground = (value: number, theme: Theme): string => {
+  const colors: Record<number, Record<Theme, string>> = {
+    2: { light: '#eee4da', dark: '#484848' },
+    4: { light: '#ede0c8', dark: '#585858' },
+    8: { light: '#f2b179', dark: '#6d4c41' },
+    16: { light: '#f59563', dark: '#855e52' },
+    32: { light: '#f67c5f', dark: '#9c6b5f' },
+    64: { light: '#f65e3b', dark: '#b37b6f' },
+    128: { light: '#edcf72', dark: '#c28b7f' },
+    256: { light: '#edcc61', dark: '#d19b8f' },
+    512: { light: '#edc850', dark: '#e0ab9f' },
+    1024: { light: '#edc53f', dark: '#efbbaf' },
+    2048: { light: '#edc22e', dark: '#ffcbbf' },
+    4096: { light: '#3c3a32', dark: '#2c2c2c' },
+    8192: { light: '#3c3a32', dark: '#2c2c2c' }
   };
-  return colors[value] || '#cdc1b4';
+  return colors[value]?.[theme] || themes[theme].tile;
 };
 
 const createEmptyGrid = (): Grid => {
@@ -266,6 +303,7 @@ const addRandomTile = (grid: Grid): Grid => {
 };
 
 const Game2048: React.FC = () => {
+  const [theme, setTheme] = useState<Theme>('light');
   const [gameState, setGameState] = useState<GameState>({
     grid: addRandomTile(addRandomTile(createEmptyGrid())),
     score: 0,
@@ -475,32 +513,41 @@ const Game2048: React.FC = () => {
     setKeepPlaying(true);
   }, []);
 
+  // 添加主题切换函数
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  }, []);
+
   return (
-    <GameContainer>
+    <GameContainer theme={theme} onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}>
       <Header>
         <TitleAndScores>
-          <Title>2048</Title>
+          <Title theme={theme}>2048</Title>
           <ScoreContainer>
-            <ScoreBox>
-              <ScoreTitle>当前分数</ScoreTitle>
+            <ScoreBox theme={theme}>
+              <ScoreTitle theme={theme}>当前分数</ScoreTitle>
               <ScoreValue>{gameState.score}</ScoreValue>
             </ScoreBox>
-            <ScoreBox>
-              <ScoreTitle>最高分</ScoreTitle>
+            <ScoreBox theme={theme}>
+              <ScoreTitle theme={theme}>最高分</ScoreTitle>
               <ScoreValue>{highScore}</ScoreValue>
             </ScoreBox>
           </ScoreContainer>
         </TitleAndScores>
         <Button onClick={resetGame}>新游戏</Button>
+        <ThemeButton onClick={toggleTheme}>
+          {theme === 'light' ? '🌙' : '☀️'}
+        </ThemeButton>
       </Header>
       <Board
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchCancel}
+        theme={theme}
         className="board"
       >
         {gameState.grid.flat().map((value, index) => (
           <Cell
+            theme={theme}
             key={index}
             value={value}
             className={value ? 'cell-new' : ''}
