@@ -159,25 +159,17 @@ const Cell = styled.div<{ value: number; theme: Theme }>`
   box-shadow: ${({ value }) => value ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none'};
 
   font-size: ${({ value }) => {
-    if (value < 100) return 'min(10vw, 48px)';
-    if (value < 1000) return 'min(8vw, 40px)';
+    if (value < 100) return 'min(11vw, 48px)';
+    if (value < 1000) return 'min(9vw, 40px)';
     return 'min(6vw, 32px)';
   }};
 
   @media (max-width: 520px) {
     border-radius: 4px;
     font-size: ${({ value }) => {
-    if (value < 100) return '28px';
+    if (value < 100) return '40px';
     if (value < 1000) return '24px';
     return '18px';
-  }};
-  }
-
-  @media (max-width: 400px) {
-    font-size: ${({ value }) => {
-    if (value < 100) return '50px';
-    if (value < 1000) return '45px';
-    return '40px';
   }};
     border-radius: 3px;
   }
@@ -543,7 +535,7 @@ const Game2048: React.FC = () => {
           {theme === 'light' ? '🌙' : '☀️'}
         </ThemeButton>
       </Header>
-      
+
       <Board
         theme={theme}
         className="board"
