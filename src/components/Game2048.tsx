@@ -49,7 +49,6 @@ const GameContainer = styled.div<{ theme: Theme }>`
   font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
   position: relative;
   width: 100%;
-  max-width: 600px;
   margin: 0 auto;
   box-sizing: border-box;
 
@@ -76,6 +75,7 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  max-width: 600px;
   margin-bottom: 20px;
   box-sizing: border-box;
 
