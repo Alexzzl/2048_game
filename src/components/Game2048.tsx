@@ -174,8 +174,8 @@ const Cell = styled.div<{ value: number; theme: Theme }>`
     border-radius: 4px;
     font-size: ${({ value }) => {
     if (value < 100) return '40px';
-    if (value < 1000) return '24px';
-    return '18px';
+    if (value < 1000) return '30px';
+    return '25px';
   }};
     border-radius: 3px;
   }
