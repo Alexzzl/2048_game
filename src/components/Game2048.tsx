@@ -165,9 +165,9 @@ const Cell = styled.div<{ value: number; theme: Theme }>`
   box-shadow: ${({ value }) => value ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none'};
 
   font-size: ${({ value }) => {
-    if (value < 100) return 'min(11vw, 48px)';
-    if (value < 1000) return 'min(9vw, 40px)';
-    return 'min(6vw, 32px)';
+    if (value < 100) return 'min(11vw, 60px)';
+    if (value < 1000) return 'min(9vw, 55px)';
+    return 'min(6vw, 45px)';
   }};
 
   @media (max-width: 520px) {
