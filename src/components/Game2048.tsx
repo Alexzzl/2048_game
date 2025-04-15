@@ -45,6 +45,8 @@ const GameContainer = styled.div<{ theme: Theme }>`
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: 100vh;
   padding: 20px;
   font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
   position: relative;
@@ -120,12 +122,16 @@ const Board = styled.div<{ theme: Theme }>`
   margin: 20px 0;
   position: relative;
   width: 100%;
-  max-width: 500px;
+  max-width: 520px;
   aspect-ratio: 1;
 
   @media (min-width: 521px) {
     padding: 20px;
     gap: 20px;
+  }
+
+  @media(min-height: 1000px) {
+    max-width: 800px;
   }
 
   @media (max-width: 520px) {
