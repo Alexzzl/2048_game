@@ -314,6 +314,18 @@ const addRandomTile = (grid: Grid): Grid => {
   return newGrid;
 };
 
+// 在类型定义部分添加历史记录接口
+interface HistoryState {
+  grid: Grid;
+  score: number;
+}
+
+// 添加回退按钮样式
+const UndoButton = styled(Button)`
+  opacity: ${({ disabled }: { disabled: boolean }) => disabled ? 0.5 : 1};
+  cursor: ${({ disabled }: { disabled: boolean }) => disabled ? 'not-allowed' : 'pointer'};
+`;
+
 const Game2048: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
   const [gameState, setGameState] = useState<GameState>({
@@ -406,6 +418,12 @@ const Game2048: React.FC = () => {
   const moveGrid = useCallback((direction: Direction): void => {
     if (gameState.gameOver && !keepPlaying) return;
 
+    // 保存当前状态到历史记录
+    const currentState: HistoryState = {
+      grid: gameState.grid.map(row => [...row]),
+      score: gameState.score
+    };
+
     let currentGrid = gameState.grid.map(row => [...row]);
     let moved = false;
     let score = 0;
@@ -433,6 +451,7 @@ const Game2048: React.FC = () => {
     }
 
     if (moved) {
+      setHistory(prev => [...prev, currentState]);
       const newGrid = addRandomTile(currentGrid);
       const newScore = gameState.score + score;
       const hasWon = newGrid.some(row => row.some(cell => cell === 2048));
@@ -518,6 +537,7 @@ const Game2048: React.FC = () => {
       won: false
     });
     setKeepPlaying(false);
+    setHistory([]); // 清空历史记录
   }, []);
 
   // 继续游戏（达到2048后）
@@ -529,6 +549,22 @@ const Game2048: React.FC = () => {
   const toggleTheme = useCallback(() => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   }, []);
+
+  const [history, setHistory] = useState<HistoryState[]>([]);
+  // 添加回退功能
+  const handleUndo = useCallback(() => {
+    if (history.length === 0) return;
+    
+    const previousState = history[history.length - 1];
+    setGameState(prev => ({
+      ...prev,
+      grid: previousState.grid.map(row => [...row]),
+      score: previousState.score,
+      gameOver: false
+    }));
+    
+    setHistory(prev => prev.slice(0, -1));
+  }, [history]);
 
   return (
     <GameContainer theme={theme} onTouchStart={handleTouchStart}
@@ -548,10 +584,19 @@ const Game2048: React.FC = () => {
             </ScoreBox>
           </ScoreContainer>
         </TitleAndScores>
-        <Button onClick={resetGame}>🔄</Button>
-        <ThemeButton onClick={toggleTheme}>
-          {theme === 'light' ? '🌙' : '☀️'}
-        </ThemeButton>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <UndoButton 
+            onClick={handleUndo} 
+            disabled={history.length === 0}
+            title={history.length === 0 ? "没有可撤销的步骤" : "撤销上一步"}
+          >
+            ↩️
+          </UndoButton>
+          <Button onClick={resetGame}>🔄</Button>
+          <ThemeButton onClick={toggleTheme}>
+            {theme === 'light' ? '🌙' : '☀️'}
+          </ThemeButton>
+        </div>
       </Header>
 
       <Board
