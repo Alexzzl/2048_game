@@ -164,20 +164,32 @@ const Cell = styled.div<{ value: number; theme: Theme }>`
   z-index: 10;
   box-shadow: ${({ value }) => value ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none'};
 
+  transition: ${({ value }) => 
+    value > 1000 
+      ? 'all 0.15s ease-in-out' 
+      : 'all 0.2s ease-in-out'
+  };
+
   font-size: ${({ value }) => {
-    if (value < 100) return 'min(11vw, 60px)';
-    if (value < 1000) return 'min(9vw, 55px)';
-    return 'min(6vw, 45px)';
+    if (value < 100) return 'min(8vw, 50px)';
+    if (value < 1000) return 'min(7vw, 45px)';
+    if (value < 10000) return 'min(6vw, 40px)';
+    return 'min(5vw, 35px)';  // 更大的数字使用更小的字体
+  }};
+
+  padding: ${({ value }) => {
+    if (value >= 1000) return '5px';  // 大数字时添加内边距
+    return '0';
   }};
 
   @media (max-width: 520px) {
     border-radius: 4px;
     font-size: ${({ value }) => {
-    if (value < 100) return '40px';
-    if (value < 1000) return '35px';
-    return '30px';
-  }};
-    border-radius: 3px;
+      if (value < 100) return '36px';
+      if (value < 1000) return '32px';
+      if (value < 10000) return '28px';
+      return '24px';  // 移动端更大的数字使用更小的字体
+    }};
   }
 `;
 
@@ -430,7 +442,7 @@ const Game2048: React.FC = () => {
         ...prev,
         grid: newGrid,
         score: newScore,
-        won: hasWon && !prev.won, // 只在第一次达到2048时设置won为true
+        won: hasWon && !prev.won,
         gameOver: isGameOver
       }));
     }
